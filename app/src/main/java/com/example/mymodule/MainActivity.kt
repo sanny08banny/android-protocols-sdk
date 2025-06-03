@@ -12,6 +12,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.clientlib.NimbusPushService
 import com.example.clientlib.QuicClient
+import com.nimbus.sdk.NimbusListener
+import com.nimbus.sdk.NimbusXMPPClient
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_CODE_POST_NOTIFICATIONS = 1001
@@ -52,7 +54,30 @@ class MainActivity : AppCompatActivity() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        NimbusPushService.createNotificationChannel(this)
-        NimbusPushService.start(this)
+
+        val client = NimbusXMPPClient(
+            server = "yourserver.com",
+            domain = "yourdomain.com",
+            username = "device123",
+            listener = object : NimbusListener {
+                override fun onConnected() {
+                    println("✅ Connected to XMPP")
+                }
+
+                override fun onMessageReceived(from: String, message: String) {
+                    println("📩 [$from] $message")
+                }
+
+                override fun onError(e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        )
+
+        client.connect()
+
+
+//        NimbusPushService.createNotificationChannel(this)
+//        NimbusPushService.start(this)
     }
 }

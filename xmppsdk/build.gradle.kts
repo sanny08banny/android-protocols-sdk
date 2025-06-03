@@ -40,4 +40,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("org.igniterealtime.smack:smack-android:4.4.6") {
+        exclude(group = "xpp3", module = "xpp3")
+    }
+    implementation("org.igniterealtime.smack:smack-tcp:4.4.6")
+    implementation("org.igniterealtime.smack:smack-im:4.4.6")
+    implementation("org.igniterealtime.smack:smack-extensions:4.4.6")
 }
