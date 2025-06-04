@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val client = NimbusXMPPClient(
-            server = "yourserver.com",
+            server = "10.0.2.2",
             domain = "yourdomain.com",
             username = "device123",
             listener = object : NimbusListener {

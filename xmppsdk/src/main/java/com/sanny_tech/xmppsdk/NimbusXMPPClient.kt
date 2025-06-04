@@ -25,7 +25,7 @@ class NimbusXMPPClient(
             .setUsernameAndPassword(jid.localpart, password)
             .setXmppDomain(domain)
             .setHost(server)
-            .setPort(5222)
+            .setPort(9092)
             .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
             .setSendPresence(true)
             .build()
