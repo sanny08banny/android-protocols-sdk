@@ -3,6 +3,7 @@ package com.example.clientlib
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 
@@ -11,39 +12,71 @@ class NimbusPushService : Service() {
     override fun onCreate() {
         super.onCreate()
         startForeground(NOTIF_ID, createNotification())
-
-        val deviceId = "e5230340-2a46-4764-ab93-27d8a2d3de0a"
-        NimbusWebSocket.connect(deviceId, context = applicationContext)
     }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val deviceId = intent?.getStringExtra(EXTRA_DEVICE_ID)
+        if (deviceId != null) {
+            NimbusWebSocket.connect(deviceId,applicationContext)
+        } else {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        NimbusWebSocket.disconnect()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createNotification(): Notification {
         return NotificationCompat.Builder(this, NOTIF_CHANNEL_ID)
             .setContentTitle("Nimbus Push")
             .setContentText("Connected to message dispatcher")
             .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSound(null)
+            .setVibrate(null)
             .build()
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
-
     companion object {
-        const val NOTIF_CHANNEL_ID = "nimbus_push_channel"
         const val NOTIF_ID = 101
+        const val NOTIF_CHANNEL_ID = "nimbus_push_channel"
+        const val EXTRA_DEVICE_ID = "device_id"
 
-        fun start(context: Context) {
-            val intent = Intent(context, NimbusPushService::class.java)
-            context.startForegroundService(intent)
+        fun start(context: Context, deviceId: String) {
+            createNotificationChannel(context)
+            val intent = Intent(context, NimbusPushService::class.java).apply {
+                putExtra(EXTRA_DEVICE_ID, deviceId)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
 
         fun createNotificationChannel(context: Context) {
-            val channel = NotificationChannel(
-                NOTIF_CHANNEL_ID,
-                "Nimbus Push",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            val manager = context.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    NOTIF_CHANNEL_ID,
+                    "Nimbus Push Channel",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    setSound(null, null)
+                    enableVibration(false)
+                    setShowBadge(false)
+                }
+                val manager = context.getSystemService(NotificationManager::class.java)
+                manager?.createNotificationChannel(channel)
+            }
         }
     }
 }
+
 
