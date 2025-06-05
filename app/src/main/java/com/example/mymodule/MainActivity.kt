@@ -55,29 +55,29 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val client = NimbusXMPPClient(
-            server = "10.0.2.2",
-            domain = "yourdomain.com",
-            username = "device123",
-            listener = object : NimbusListener {
-                override fun onConnected() {
-                    println("✅ Connected to XMPP")
-                }
+//        val client = NimbusXMPPClient(
+//            server = "10.0.2.2",
+//            domain = "yourdomain.com",
+//            username = "device123",
+//            listener = object : NimbusListener {
+//                override fun onConnected() {
+//                    println("✅ Connected to XMPP")
+//                }
+//
+//                override fun onMessageReceived(from: String, message: String) {
+//                    println("📩 [$from] $message")
+//                }
+//
+//                override fun onError(e: Exception) {
+//                    e.printStackTrace()
+//                }
+//            }
+//        )
+//
+//        client.connect()
 
-                override fun onMessageReceived(from: String, message: String) {
-                    println("📩 [$from] $message")
-                }
 
-                override fun onError(e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        )
-
-        client.connect()
-
-
-//        NimbusPushService.createNotificationChannel(this)
-//        NimbusPushService.start(this)
+        NimbusPushService.createNotificationChannel(this)
+        NimbusPushService.start(this,"e5230340-2a46-4764-ab93-27d8a2d3de0a")
     }
 }
