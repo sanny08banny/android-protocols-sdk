@@ -30,6 +30,16 @@ object NimbusWebSocket {
     private const val MAX_DELAY = 60000L
     private const val WATCHDOG_TIMEOUT = 30000L
 
+    private var listener: PushMessageListener? = null
+
+    fun registerListener(pushListener: PushMessageListener) {
+        listener = pushListener
+    }
+
+    fun unregisterListener() {
+        listener = null
+    }
+
     fun connect(id: String, context: Context) {
         if (connected) {
             Log.d(TAG, "Already connected, skipping connect()")
@@ -63,7 +73,12 @@ object NimbusWebSocket {
                 lastMessageTime = System.currentTimeMillis()
                 Log.d(TAG, "Received message: $text")
                 contextRef?.get()?.let { ctx ->
-                    MessageHandler.onMessageReceived(ctx, text)
+                    listener?.onMessageReceived(text)
+                        ?: run {
+                            Log.w("NimbusPush", "No listener registered; using default handler")
+                            MessageHandler.onMessageReceived(ctx,text)
+                        }
+//                    MessageHandler.onMessageReceived(ctx, text)
                 }
             }
 
