@@ -27,6 +27,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Module"
 include(":app")
-include(":quicpush")
+//include(":quicpush")
 include(":clientlib")
-include(":xmppsdk")
+//include(":xmppsdk")
