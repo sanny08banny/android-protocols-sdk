@@ -12,8 +12,6 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/clientlib" />
-            <option value="$PROJECT_DIR$/quicpush" />
-            <option value="$PROJECT_DIR$/xmppsdk" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
