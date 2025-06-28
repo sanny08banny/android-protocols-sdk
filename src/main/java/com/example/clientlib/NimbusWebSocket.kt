@@ -13,6 +13,8 @@ import java.lang.ref.WeakReference
 import kotlin.math.pow
 
 object NimbusWebSocket {
+    private const val TAG = "NimbusWebSocket"
+
     private var socket: WebSocket? = null
     private var connected = false
     private var deviceId: String? = null
@@ -29,16 +31,23 @@ object NimbusWebSocket {
     private const val WATCHDOG_TIMEOUT = 30000L
 
     fun connect(id: String, context: Context) {
-        if (connected) return
+        if (connected) {
+            Log.d(TAG, "Already connected, skipping connect()")
+            return
+        }
+        Log.d(TAG, "Attempting to connect with ID: $id")
         deviceId = id
-        contextRef = WeakReference(context.applicationContext) // Safe reference
+        contextRef = WeakReference(context.applicationContext)
         reconnectAttempts = 0
         tryConnect()
     }
 
     private fun tryConnect() {
+        val url = "ws://172.104.9.226:8090/connect?device_id=$deviceId"
+        Log.d(TAG, "Connecting to $url")
+
         val request = Request.Builder()
-            .url("ws://10.0.2.2:8090/connect?device_id=$deviceId")
+            .url(url)
             .build()
 
         socket = client.newWebSocket(request, object : WebSocketListener() {
@@ -46,11 +55,13 @@ object NimbusWebSocket {
                 connected = true
                 reconnectAttempts = 0
                 lastMessageTime = System.currentTimeMillis()
+                Log.d(TAG, "WebSocket connected")
                 startWatchdog()
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 lastMessageTime = System.currentTimeMillis()
+                Log.d(TAG, "Received message: $text")
                 contextRef?.get()?.let { ctx ->
                     MessageHandler.onMessageReceived(ctx, text)
                 }
@@ -58,16 +69,19 @@ object NimbusWebSocket {
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 connected = false
+                Log.e(TAG, "WebSocket connection failed: ${t.message}", t)
                 stopWatchdog()
                 scheduleReconnect()
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                Log.d(TAG, "WebSocket closing: [$code] $reason")
                 webSocket.close(1000, null)
                 connected = false
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                Log.d(TAG, "WebSocket closed: [$code] $reason")
                 connected = false
                 stopWatchdog()
             }
@@ -78,6 +92,7 @@ object NimbusWebSocket {
         reconnectAttempts++
         val delay = (INITIAL_DELAY * 2.0.pow(reconnectAttempts.coerceAtMost(6))).toLong()
             .coerceAtMost(MAX_DELAY)
+        Log.d(TAG, "Scheduling reconnect in $delay ms (attempt $reconnectAttempts)")
         scope.launch {
             delay(delay)
             tryConnect()
@@ -85,10 +100,12 @@ object NimbusWebSocket {
     }
 
     private fun startWatchdog() {
+        Log.d(TAG, "Watchdog started")
         scope.launch {
             while (connected) {
                 delay(WATCHDOG_TIMEOUT)
                 if (System.currentTimeMillis() - lastMessageTime > WATCHDOG_TIMEOUT) {
+                    Log.w(TAG, "Watchdog timeout – forcing reconnect")
                     forceReconnect()
                     break
                 }
@@ -97,15 +114,18 @@ object NimbusWebSocket {
     }
 
     private fun stopWatchdog() {
+        Log.d(TAG, "Watchdog stopped")
         scope.coroutineContext.cancelChildren()
     }
 
     fun forceReconnect() {
+        Log.d(TAG, "Force reconnect triggered")
         disconnect()
         scheduleReconnect()
     }
 
     fun disconnect() {
+        Log.d(TAG, "Disconnecting WebSocket")
         stopWatchdog()
         socket?.cancel()
         socket = null
