@@ -12,9 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.clientlib.NimbusPushService
 import com.example.clientlib.NimbusWebSocket
-import com.example.clientlib.QuicClient
-import com.nimbus.sdk.NimbusListener
-import com.nimbus.sdk.NimbusXMPPClient
+
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_CODE_POST_NOTIFICATIONS = 1001
